@@ -18,6 +18,45 @@ Genie Workbench は以下の機能を1つの Databricks App に統合してい�
 | **Auto-Optimize (GSO)** | ベンチマーク評価ベースで反復的に精度を自動改善 |
 | **Admin Dashboard** | 組織全体の統計・リーダーボード・アラートを表示 |
 
+### Genie 精度改善フロー
+
+Genie Workbench では、以下のステップを組み合わせて Genie Space の回答精度を段階的に高めていきます:
+
+```
+┌────────────┐     ┌────────────┐     ┌────────────┐     ┌────────────────┐
+│  1. 可視化  │────►│  2. 診断   │────►│  3. 修正   │────►│  4. 自動最適化  │
+│  (GenieIQ) │     │ (GenieRx)  │     │ (Fix Agent)│     │    (GSO)       │
+└────────────┘     └────────────┘     └────────────┘     └────────────────┘
+       │                                                          │
+       └──────────────────── 5. 継続モニタリング ◄─────────────────┘
+```
+
+**Step 1 — 可視化 (GenieIQ スキャン)**
+組織内の全 Genie Space を横断スキャンし、IQ スコア (0〜100) を算出します。スコアは Instructions の充実度、Column Config の設定率、Sample Questions の有無など複数の観点から評価され、「どの Space が改善を必要としているか」を一目で把握できます。
+
+**Step 2 — 診断 (GenieRx 分析)**
+改善が必要な Space を選択し、LLM による深層分析を実行します。テーブル定義・カラム説明・Instructions・Join Spec 等の設定を読み取り、「何が不足しているか」「どこに曖昧さがあるか」を具体的な Findings（改善ポイント）として一覧化します。
+
+**Step 3 — 修正 (Fix Agent)**
+検出された Findings に対し、AI Fix Agent が修正パッチを自動生成します。差分プレビューで変更内容を確認した上で、ワンクリックで Genie Space に適用できます。これにより、Instructions の追加・Column 説明の補完・Sample SQL の追加などが即座に反映されます。
+
+**Step 4 — 自動最適化 (GSO: Genie Space Optimizer)**
+さらに高い精度を目指す場合は、Auto-Optimize を起動します。GSO はベンチマーク質問セットに対して Genie の回答を自動評価し、以下のレバーを反復的に操作して精度を改善します:
+
+| レバー | 操作内容 |
+|--------|----------|
+| Proactive Enrichment | UC メタデータから説明文を自動補完 |
+| Tables & Columns | カラム説明・同義語・除外設定の最適化 |
+| Metric Views | メトリクスビュー定義の改善 |
+| SQL Queries & Functions | Example SQL・SQL 関数の追加 |
+| Join Specifications | テーブル間結合条件の明確化 |
+| Text Instructions | 自然言語 Instructions の追加・改善 |
+
+各イテレーションで精度が向上すれば変更を保持し、しなければロールバック。収束条件を満たすまで自動で繰り返します。
+
+**Step 5 — 継続モニタリング**
+最適化後も GenieIQ スコアの推移を Admin Dashboard で追跡し、スコアが低下した Space には再スキャン・再最適化を実施します。このサイクルを回すことで、組織全体の Genie 品質を継続的に維持・向上させます。
+
 ---
 
 ## アーキテクチャ
