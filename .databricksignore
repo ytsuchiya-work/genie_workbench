@@ -1,0 +1,85 @@
+# Databricks Apps ignore file
+# Controls what files are synced during deployment
+# See: https://github.com/databricks-solutions/databricks-genai-app-template
+
+# =============================================================================
+# IMPORTANT: frontend/dist/ MUST be deployed (it contains the React build)
+# =============================================================================
+
+# Development and IDE files
+.git/
+.vscode/
+.cursor/
+.idea/
+*.pyc
+__pycache__/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# Environment files (secrets - never deploy these)
+.env
+.env.local
+.env.*
+
+# Frontend source/dev files (not needed at runtime)
+frontend/node_modules/
+frontend/.vite/
+# NOTE: frontend/dist/ is NOT excluded — it contains the built React app
+
+# Test and scratch files
+tests/
+test_*.py
+/scratch/
+/output/
+
+# Documentation (not needed at runtime)
+# Note: docs/*.md files are excluded by the *.md rule below,
+# with specific re-includes for runtime-needed files
+CLAUDE.md
+README.md
+
+# Python virtual environments
+.venv/
+venv/
+
+# MLflow local runs and database
+mlruns/
+mlflow.db
+
+# Python dependency management — exclude requirements.txt so the platform uses
+# uv (pyproject.toml + uv.lock) instead of pip.  uv installs into a clean venv
+# with SHA256-verified hashes, avoiding conflicts with pre-installed packages
+# (dash, gradio, streamlit, databricks-sql-connector) and providing supply-chain
+# tamper detection.  requirements.txt is kept in the repo as a pip-compatible
+# reference but must NOT be synced to the workspace.
+requirements.txt
+
+# Other non-runtime files
+*.md
+!backend/references/schema.md
+deploy.sh
+deploy-config.sh
+databricks.yml
+.env.deploy
+.env.deploy.template
+.build/
+CODEOWNERS.txt
+LICENSE.md
+NOTICE.md
+SECURITY.md
+notebooks/
+scripts/
+sql/
+.databricks/
+.gitleaksignore
+.gitignore
+
+# GSO subtree — exclude non-runtime files
+packages/genie-space-optimizer/node_modules/
+packages/genie-space-optimizer/.build/
+packages/genie-space-optimizer/.databricks/
+packages/genie-space-optimizer/src/genie_space_optimizer/__dist__/
+packages/genie-space-optimizer/browser-test-output/
+packages/genie-space-optimizer/tests/
+packages/genie-space-optimizer/.git/

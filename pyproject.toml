@@ -1,0 +1,41 @@
+[project]
+name = "genie-workbench"
+version = "0.1.0"
+description = "Unified Databricks Genie Space management platform"
+requires-python = ">=3.11"
+dependencies = [
+    "databricks-sdk==0.102.0",
+    "pydantic==2.12.5",
+    "python-dotenv==1.2.2",
+    "mlflow==3.11.1",
+    "fastapi==0.135.2",
+    "uvicorn[standard]==0.42.0",
+    "httpx==0.28.1",
+    "requests==2.32.5",
+    "asyncpg==0.31.0",
+    "genie-space-optimizer",
+]
+
+[project.optional-dependencies]
+dev = ["pytest==9.0.2", "pytest-asyncio==1.3.0"]
+
+[project.scripts]
+start-server = "backend.main:main"
+
+[build-system]
+requires = ["hatchling==1.29.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["backend"]
+
+[tool.uv.workspace]
+members = ["packages/genie-space-optimizer"]
+
+[tool.uv.sources]
+genie-space-optimizer = { workspace = true }
+
+[tool.pytest.ini_options]
+testpaths = ["backend/tests"]
+pythonpath = ["."]
+asyncio_mode = "auto"

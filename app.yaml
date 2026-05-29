@@ -1,0 +1,131 @@
+# Databricks Apps configuration for Genie Workbench
+# See: https://docs.databricks.com/dev-tools/databricks-apps/
+#
+# Genie Workbench combines:
+#   - GenieRx: LLM-powered analysis and optimization of Genie Spaces
+#   - GenieIQ: Org-wide scoring with PostgreSQL (Lakebase) persistence
+#
+# Authentication: User-based (OBO) — users can only access Genie Spaces
+# they have permission to manage.
+#
+# The FastAPI server serves both:
+#   - Static React frontend files from /frontend/dist
+#   - REST API endpoints under /api
+
+command:
+  - "uvicorn"
+  - "backend.main:app"
+  - "--host"
+  - "0.0.0.0"
+  - "--port"
+  - "8000"
+
+user_api_scopes:
+  - "sql"
+  - "dashboards.genie"
+  - "serving.serving-endpoints"
+  - "catalog.catalogs:read"
+  - "catalog.schemas:read"
+  - "catalog.tables:read"
+  - "files.files"
+
+env:
+  # ---------------------------------------------------------------------------
+  # MLflow Tracing
+  # ---------------------------------------------------------------------------
+  - name: MLFLOW_TRACKING_URI
+    value: "databricks"
+  - name: MLFLOW_REGISTRY_URI
+    value: "databricks-uc"
+  - name: MLFLOW_EXPERIMENT_ID
+    value: ""
+
+  # ---------------------------------------------------------------------------
+  # LLM Model
+  # ---------------------------------------------------------------------------
+  - name: LLM_MODEL
+    value: "databricks-claude-sonnet-4-6"
+
+  # ---------------------------------------------------------------------------
+  # SQL Warehouse — pulled from the app resource named "sql-warehouse".
+  # Configure the warehouse resource in the Databricks Apps UI.
+  # Falls back to auto-detect if empty.
+  # ---------------------------------------------------------------------------
+  - name: SQL_WAREHOUSE_ID
+    valueFrom: sql-warehouse
+
+  # ---------------------------------------------------------------------------
+  # Genie Space target directory (where new spaces are created)
+  # Defaults to /Shared/ which is writable by most service principals.
+  # Override to a specific folder if needed (e.g. /Workspace/Shared/Analytics/).
+  # ---------------------------------------------------------------------------
+  - name: GENIE_TARGET_DIRECTORY
+    value: "/Shared/"
+
+  # ---------------------------------------------------------------------------
+  # Local dev auth (only used when running outside Databricks Apps)
+  # ---------------------------------------------------------------------------
+  - name: DEV_USER_EMAIL
+    value: ""
+
+  # ---------------------------------------------------------------------------
+  # Lakebase PostgreSQL — connect manually via Databricks Apps UI.
+  # Add a postgres resource named "postgres" in the Apps UI. The platform
+  # injects the host via valueFrom. The app auto-creates all required tables.
+  # Without Lakebase, the app uses in-memory storage (ephemeral).
+  # ---------------------------------------------------------------------------
+  - name: LAKEBASE_HOST
+    valueFrom: postgres
+  - name: LAKEBASE_PORT
+    value: "5432"
+  - name: LAKEBASE_DATABASE
+    value: "databricks_postgres"
+  - name: LAKEBASE_INSTANCE_NAME
+    value: ""
+
+  # ---------------------------------------------------------------------------
+  # Auto-Optimize (GSO Engine)
+  # These are placeholder values. The deploy script patches them with real
+  # values (from bundle state) on workspace before running `apps deploy`.
+  # ---------------------------------------------------------------------------
+  - name: GSO_CATALOG
+    value: "classic_stable_ytcy_catalog"
+  - name: GSO_SCHEMA
+    value: "genie_space_optimizer"
+  - name: GSO_JOB_ID
+    value: "129140022790453"
+  - name: GSO_WAREHOUSE_ID
+    valueFrom: sql-warehouse
+
+# ---------------------------------------------------------------------------
+# Resources
+# ---------------------------------------------------------------------------
+resources:
+  - name: sql-warehouse
+    description: "SQL Warehouse for queries and catalog discovery"
+    sql_warehouse:
+      id: "e351c2d1b16eae95"
+      permission: CAN_USE
+
+# ---------------------------------------------------------------------------
+# Deployment
+# ---------------------------------------------------------------------------
+# Recommended local terminal path:
+#   ./scripts/install.sh        # Guided first-time setup
+#   ./scripts/deploy.sh          # Subsequent deploys
+#
+# Recommended Databricks notebook path:
+#   notebooks/install.py         # Run from a Databricks Git folder
+#
+# deploy.sh handles:
+#   - App creation/sync/deploy
+#   - OAuth scopes and resource configuration
+#   - GSO optimization job via `databricks bundle deploy -t app`
+#   - Injects GSO_JOB_ID into this file before running `apps deploy`
+#   - UC permissions and job permissions
+#
+# notebooks/install.py handles the same app/resource setup with notebook-native
+# auth. It treats this app.yaml as a template, writes a patched copy into
+# /Workspace/Users/<user>/.genie-workbench-deploy/<app-name>/app, and deploys
+# from that generated workspace source folder.
+# ---------------------------------------------------------------------------
